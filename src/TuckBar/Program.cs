@@ -1,6 +1,11 @@
-﻿internal static class Program
+namespace TuckBar;
+
+internal static class Program
 {
-    private static void Main(string[] args)
+    [STAThread]
+    private static void Main()
     {
+        ApplicationConfiguration.Initialize();
+        Application.Run(new TuckBarApplicationContext());
     }
 }

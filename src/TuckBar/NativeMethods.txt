@@ -1,0 +1,5 @@
+GetDisplayConfigBufferSizes
+QueryDisplayConfig
+SendMessageTimeout
+FindWindow
+DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY
