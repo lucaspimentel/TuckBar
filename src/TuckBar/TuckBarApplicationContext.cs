@@ -18,7 +18,6 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
 
         _notifyIcon = new NotifyIcon
         {
-            Icon = CreateIcon(),
             ContextMenuStrip = contextMenu,
             Visible = true
         };
@@ -65,13 +64,23 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         string state = autoHide ? "ON" : "OFF";
         _statusItem.Text = $"Auto-hide: {state}";
         _notifyIcon.Text = $"TuckBar - Auto-hide: {state}";
+
+        Icon? oldIcon = _notifyIcon.Icon;
+        _notifyIcon.Icon = CreateIcon(autoHide);
+
+        if (oldIcon is not null)
+        {
+            DestroyIcon(oldIcon);
+        }
     }
 
-    private static Icon CreateIcon()
+    private static Icon CreateIcon(bool autoHide)
     {
+        Color bg = autoHide ? Color.FromArgb(0, 122, 204) : Color.FromArgb(64, 64, 64);
+
         var bitmap = new Bitmap(16, 16);
         using Graphics g = Graphics.FromImage(bitmap);
-        g.Clear(Color.FromArgb(64, 64, 64));
+        g.Clear(bg);
 
         using var font = new Font("Segoe UI", 9f, FontStyle.Bold, GraphicsUnit.Pixel);
         using var brush = new SolidBrush(Color.White);
@@ -85,6 +94,9 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
 
         return Icon.FromHandle(bitmap.GetHicon());
     }
+
+    private static void DestroyIcon(Icon icon) =>
+        icon.Dispose();
 
     protected override void Dispose(bool disposing)
     {

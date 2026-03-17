@@ -1,7 +1,8 @@
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using Windows.Win32;
 using Windows.Win32.Foundation;
-using Windows.Win32.UI.WindowsAndMessaging;
+using Windows.Win32.UI.Shell;
 
 namespace TuckBar;
 
@@ -11,6 +12,11 @@ internal static class TaskbarHelper
     private const string SettingsValueName = "Settings";
     private const int AutoHideByteIndex = 8;
     private const byte AutoHideBitMask = 0x01;
+
+    private const uint ABM_GETSTATE = 0x00000004;
+    private const uint ABM_SETSTATE = 0x0000000A;
+    private const int ABS_AUTOHIDE = 0x0000001;
+    private const int ABS_ALWAYSONTOP = 0x0000002;
 
     internal static bool IsAutoHideEnabled(byte[] settingsBlob)
     {
@@ -45,48 +51,35 @@ internal static class TaskbarHelper
 
     public static bool GetAutoHide()
     {
-        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(StuckRects3Path);
-        if (key?.GetValue(SettingsValueName) is not byte[] blob)
-        {
-            return false;
-        }
-
-        return IsAutoHideEnabled(blob);
+        var abd = new APPBARDATA { cbSize = (uint)Marshal.SizeOf<APPBARDATA>() };
+        nuint state = PInvoke.SHAppBarMessage(ABM_GETSTATE, ref abd);
+        return ((int)state & ABS_AUTOHIDE) != 0;
     }
 
     public static void SetAutoHide(bool enable)
     {
-        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(StuckRects3Path, writable: true);
-        if (key?.GetValue(SettingsValueName) is not byte[] blob)
-        {
-            return;
-        }
-
-        bool currentState = IsAutoHideEnabled(blob);
+        bool currentState = GetAutoHide();
         if (currentState == enable)
         {
             return;
         }
 
-        byte[] updated = SetAutoHideBit(blob, enable);
-        key.SetValue(SettingsValueName, updated, RegistryValueKind.Binary);
-
-        BroadcastSettingChange();
-    }
-
-    private static void BroadcastSettingChange()
-    {
-        HWND taskbar = PInvoke.FindWindow("Shell_TrayWnd", null);
-        if (taskbar != HWND.Null)
+        // Update registry so the setting persists across Explorer restarts
+        using RegistryKey? key = Registry.CurrentUser.OpenSubKey(StuckRects3Path, writable: true);
+        if (key?.GetValue(SettingsValueName) is byte[] blob)
         {
-            PInvoke.SendMessageTimeout(
-                taskbar,
-                0x001A, // WM_SETTINGCHANGE
-                0,
-                default,
-                SEND_MESSAGE_TIMEOUT_FLAGS.SMTO_ABORTIFHUNG,
-                2000,
-                out _);
+            byte[] updated = SetAutoHideBit(blob, enable);
+            key.SetValue(SettingsValueName, updated, RegistryValueKind.Binary);
         }
+
+        // Apply immediately via shell API
+        var abd = new APPBARDATA
+        {
+            cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
+            hWnd = PInvoke.FindWindow("Shell_TrayWnd", null),
+            lParam = enable ? ABS_AUTOHIDE : ABS_ALWAYSONTOP
+        };
+
+        PInvoke.SHAppBarMessage(ABM_SETSTATE, ref abd);
     }
 }
