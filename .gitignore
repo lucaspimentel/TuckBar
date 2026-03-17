@@ -1,0 +1,15 @@
+# IDEs
+.idea/
+.vs/
+.vscode/
+
+# artifacts
+bin/
+obj/
+artifacts/
+publish/
+BenchmarkDotNet.Artifacts/
+
+# user settings
+*.user
+.claude/*.local.*

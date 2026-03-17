@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="src\Project\Project.csproj" Type="Classic C#" />
+  <Project Path="test\Project.Tests\Project.Tests.csproj" Type="Classic C#" />
+</Solution>

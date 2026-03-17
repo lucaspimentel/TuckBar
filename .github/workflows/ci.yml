@@ -1,0 +1,61 @@
+name: CI
+
+# TODO: Update these to match your project
+env:
+  ASSEMBLY_NAME: Project           # AssemblyName from csproj (used for archive/release asset names)
+  PROJECT_NAME: Project            # csproj project name without extension (used for artifact output paths)
+  PROJECT_FILE: src/Project/Project.csproj
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.gitignore'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.gitignore'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore template-dotnet-console.slnx
+
+    - name: Build
+      run: dotnet build template-dotnet-console.slnx -c Release --no-restore
+
+    - name: Test
+      run: dotnet test template-dotnet-console.slnx -c Release --no-build --verbosity normal
+
+    - name: Publish
+      # With UseArtifactsOutput, output lands at artifacts/publish/<ProjectName>/release_<rid>/
+      run: dotnet publish ${{ env.PROJECT_FILE }} -c Release -r ${{ matrix.rid }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      with:
+        name: ${{ env.ASSEMBLY_NAME }}-${{ matrix.rid }}
+        path: artifacts/publish/${{ env.PROJECT_NAME }}/release_${{ matrix.rid }}/
