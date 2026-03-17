@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src\TuckBar\TuckBar.csproj" Type="Classic C#" />
+  <Project Path="test\TuckBar.Tests\TuckBar.Tests.csproj" Type="Classic C#" />
+</Solution>
