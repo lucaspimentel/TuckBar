@@ -5,15 +5,23 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
     private readonly NotifyIcon _notifyIcon;
     private readonly MessageWindow _messageWindow;
     private readonly ToolStripMenuItem _statusItem;
+    private readonly ToolStripMenuItem _startupItem;
 
     public TuckBarApplicationContext()
     {
         _statusItem = new ToolStripMenuItem { Enabled = false };
+        _startupItem = new ToolStripMenuItem("Start with Windows")
+        {
+            Checked = StartupHelper.IsEnabled()
+        };
+        _startupItem.Click += OnToggleStartup;
 
         var contextMenu = new ContextMenuStrip();
         contextMenu.Items.Add(_statusItem);
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add("Toggle Auto-hide", null, OnToggleAutoHide);
+        contextMenu.Items.Add(_startupItem);
+        contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add("Exit", null, OnExit);
 
         _notifyIcon = new NotifyIcon
@@ -32,6 +40,13 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
 
     private void OnDisplayChanged(object? sender, EventArgs e) =>
         EvaluateAndApply();
+
+    private void OnToggleStartup(object? sender, EventArgs e)
+    {
+        bool enable = !StartupHelper.IsEnabled();
+        StartupHelper.SetEnabled(enable);
+        _startupItem.Checked = enable;
+    }
 
     private void OnToggleAutoHide(object? sender, EventArgs e)
     {
