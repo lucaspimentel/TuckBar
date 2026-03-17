@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Project.Tests")]
+[assembly: InternalsVisibleTo("TuckBar.Tests")]

@@ -1,10 +1,9 @@
 name: CI
 
-# TODO: Update these to match your project
 env:
-  ASSEMBLY_NAME: Project           # AssemblyName from csproj (used for archive/release asset names)
-  PROJECT_NAME: Project            # csproj project name without extension (used for artifact output paths)
-  PROJECT_FILE: src/Project/Project.csproj
+  ASSEMBLY_NAME: TuckBar
+  PROJECT_NAME: TuckBar
+  PROJECT_FILE: src/TuckBar/TuckBar.csproj
 
 on:
   push:
@@ -23,15 +22,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            rid: win-x64
-          - os: ubuntu-latest
-            rid: linux-x64
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -42,20 +33,20 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore dependencies
-      run: dotnet restore template-dotnet-console.slnx
+      run: dotnet restore TuckBar.slnx
 
     - name: Build
-      run: dotnet build template-dotnet-console.slnx -c Release --no-restore
+      run: dotnet build TuckBar.slnx -c Release --no-restore
 
     - name: Test
-      run: dotnet test template-dotnet-console.slnx -c Release --no-build --verbosity normal
+      run: dotnet test TuckBar.slnx -c Release --no-build --verbosity normal
 
     - name: Publish
       # With UseArtifactsOutput, output lands at artifacts/publish/<ProjectName>/release_<rid>/
-      run: dotnet publish ${{ env.PROJECT_FILE }} -c Release -r ${{ matrix.rid }}
+      run: dotnet publish ${{ env.PROJECT_FILE }} -c Release -r win-x64
 
     - name: Upload artifacts
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
-        name: ${{ env.ASSEMBLY_NAME }}-${{ matrix.rid }}
-        path: artifacts/publish/${{ env.PROJECT_NAME }}/release_${{ matrix.rid }}/
+        name: ${{ env.ASSEMBLY_NAME }}-win-x64
+        path: artifacts/publish/${{ env.PROJECT_NAME }}/release_win-x64/
