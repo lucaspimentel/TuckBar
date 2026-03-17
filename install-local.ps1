@@ -3,11 +3,11 @@
 
 <#
 .SYNOPSIS
-    Builds and installs PROJECT from source.
+    Builds and installs TuckBar from source.
 
 .DESCRIPTION
-    This script builds PROJECT from source and installs it
-    to ~/.local/bin/PROJECT (or ~/.local/bin/PROJECT.exe on Windows).
+    This script builds TuckBar from source and installs it
+    to ~/.local/bin/TuckBar (or ~/.local/bin/TuckBar.exe on Windows).
 
     Requirements:
     - PowerShell 7.0+
@@ -22,7 +22,7 @@
 .EXAMPLE
     ./install-local.ps1
 
-    Builds and installs PROJECT to ~/.local/bin
+    Builds and installs TuckBar to ~/.local/bin
 
 .EXAMPLE
     ./install-local.ps1 -Force
@@ -44,9 +44,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# TODO: Update this to match your project name and .csproj path
-$ProjectName = 'PROJECT'
-$ProjectFile = 'src/Project/Project.csproj'
+$ProjectName = 'TuckBar'
+$ProjectFile = 'src/TuckBar/TuckBar.csproj'
 
 # Check if the local clone is up-to-date with remote
 Write-Host "Checking if repository is up-to-date..." -ForegroundColor Cyan
