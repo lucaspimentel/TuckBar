@@ -3,11 +3,11 @@
 
 <#
 .SYNOPSIS
-    Downloads and installs PROJECT from GitHub releases.
+    Downloads and installs TuckBar from GitHub releases.
 
 .DESCRIPTION
-    This script downloads a pre-built PROJECT binary from GitHub releases
-    and installs it to ~/.local/bin/PROJECT (or ~/.local/bin/PROJECT.exe on Windows).
+    This script downloads a pre-built TuckBar binary from GitHub releases
+    and installs it to ~/.local/bin/TuckBar (or ~/.local/bin/TuckBar.exe on Windows).
 
     No build tools are required - only PowerShell 7.0+.
 
@@ -21,15 +21,15 @@
 .EXAMPLE
     ./install-remote.ps1
 
-    Downloads and installs the latest version of PROJECT.
+    Downloads and installs the latest version of TuckBar.
 
 .EXAMPLE
     ./install-remote.ps1 -Version 1.0.0
 
-    Downloads and installs version 1.0.0 of PROJECT.
+    Downloads and installs version 1.0.0 of TuckBar.
 
 .EXAMPLE
-    irm https://raw.githubusercontent.com/lucaspimentel/PROJECT_REPO/main/install-remote.ps1 | iex
+    irm https://raw.githubusercontent.com/lucaspimentel/TuckBar/main/install-remote.ps1 | iex
 
     One-liner to download and run this installer script directly from GitHub.
 #>
@@ -45,24 +45,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# TODO: Update these to match your project
-$ProjectName = 'PROJECT'           # AssemblyName from csproj (the executable name)
+$ProjectName = 'TuckBar'
 $GitHubOwner = 'lucaspimentel'
-$GitHubRepo = 'PROJECT_REPO'       # GitHub repository name
+$GitHubRepo = 'TuckBar'
 
-# Determine runtime identifier and archive extension
-$rid = if ($IsWindows) {
-    'win-x64'
-} elseif ($IsLinux) {
-    'linux-x64'
-} else {
-    Write-Host "Error: Unsupported platform. Only Windows (win-x64) and Linux (linux-x64) are supported." -ForegroundColor Red
-    Write-Host "To build from source on other platforms, use: ./install-local.ps1" -ForegroundColor Cyan
+if (-not $IsWindows) {
+    Write-Host "Error: TuckBar is a Windows-only application." -ForegroundColor Red
     exit 1
 }
 
-$archiveExt = if ($IsWindows) { 'zip' } else { 'tar.gz' }
-$exeName = if ($IsWindows) { "$ProjectName.exe" } else { $ProjectName }
+$rid = 'win-x64'
+$archiveExt = 'zip'
+$exeName = "$ProjectName.exe"
 
 Write-Host "Installing $ProjectName for $rid..." -ForegroundColor Cyan
 

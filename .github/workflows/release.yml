@@ -38,20 +38,21 @@ jobs:
       run: dotnet test TuckBar.slnx -c Release --verbosity normal
 
     - name: Publish
-      # With UseArtifactsOutput, output lands at artifacts/publish/<ProjectName>/release_<rid>/
-      run: dotnet publish ${{ env.PROJECT_FILE }} -c Release -r win-x64 --self-contained
+      run: dotnet publish ${{ env.PROJECT_FILE }} -c Release -r win-x64
 
-    - name: Copy documentation
+    - name: Prepare release files
       shell: pwsh
       run: |
-        $dist = "artifacts/publish/${{ env.PROJECT_NAME }}/release_win-x64"
+        $dist = "release-staging"
+        New-Item -ItemType Directory -Path $dist -Force | Out-Null
+        Copy-Item "artifacts/publish/${{ env.PROJECT_NAME }}/release_win-x64/${{ env.ASSEMBLY_NAME }}.exe" $dist/
         Copy-Item LICENSE $dist/ -ErrorAction SilentlyContinue
         Copy-Item README.md $dist/
 
     - name: Create archive
       shell: pwsh
       run: |
-        Compress-Archive -Path artifacts/publish/${{ env.PROJECT_NAME }}/release_win-x64/* -DestinationPath ${{ env.ASSEMBLY_NAME }}-win-x64.zip
+        Compress-Archive -Path release-staging/* -DestinationPath ${{ env.ASSEMBLY_NAME }}-win-x64.zip
 
     - name: Generate checksum
       shell: pwsh
