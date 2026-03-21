@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.0] - 2026-03-21
+
+### Added
+
+- Display detected monitors with friendly names in the tray context menu
+- Show monitor summary (internal/external) in the tray icon tooltip
+- Remote Desktop detection and configurable RDP auto-hide scenario
+- "Hide when:" prefix on scenario menu items for clarity
+
+### Changed
+
+- Settings keys renamed to `hide-when-*` format (e.g., `hide-when-internal-only`)
+
+### Fixed
+
+- Release workflow artifact download path so binaries attach to GitHub releases
+- Combined per-platform checksums into single `checksums.txt`
+
 ## [0.1.0] - 2026-03-21
 
 Initial public release.

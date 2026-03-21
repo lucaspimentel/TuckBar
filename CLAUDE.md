@@ -21,7 +21,7 @@ Install from source: `pwsh -NoProfile -File install-local.ps1`
 
 - **`Settings`** — loads/saves per-scenario auto-hide preferences from `~/.config/TuckBar/settings.yml` (hand-parsed YAML, no library dependency).
 - **`TuckBarApplicationContext`** — main entry point (`ApplicationContext`). Owns the system tray icon, context menu, and orchestrates auto-hide logic via `EvaluateAndApply()`.
-- **`DisplayMonitor`** — queries active display paths via `QueryDisplayConfig` Win32 API to classify monitors as internal (laptop) or external.
+- **`DisplayMonitor`** — queries active display paths via `QueryDisplayConfig` Win32 API to classify monitors as internal (laptop) or external. Uses `DisplayConfigGetDeviceInfo` for friendly monitor names and `SystemInformation.TerminalServerSession` for RDP detection.
 - **`TaskbarHelper`** — gets/sets taskbar auto-hide state using `SHAppBarMessage` (immediate) and `StuckRects3` registry key (persistence across Explorer restarts).
 - **`MessageWindow`** — hidden WinForms window that receives `WM_DISPLAYCHANGE` messages, debounces (500ms), and raises `DisplayChanged` events.
 - **`StartupHelper`** — manages "Start with Windows" via the `HKCU\...\Run` registry key.

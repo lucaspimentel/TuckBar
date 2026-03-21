@@ -12,7 +12,7 @@
 
         <!-- NuGet -->
         <PackageId>TuckBar</PackageId>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <Authors>Lucas Pimentel</Authors>
         <Copyright>Copyright (c) Lucas Pimentel 2026</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -9,6 +9,7 @@ A Windows system tray app that automatically toggles taskbar auto-hide based on 
 | Internal (laptop) monitor only | ON |
 | External monitor only | OFF |
 | Both monitors connected | ON |
+| Remote Desktop session | OFF |
 
 All scenarios are configurable via the tray icon context menu. Settings persist across sessions in `~/.config/TuckBar/settings.yml`.
 
@@ -19,6 +20,8 @@ All scenarios are configurable via the tray icon context menu. Settings persist 
 - Toggles taskbar auto-hide via `SHAppBarMessage` (with registry persistence)
 - System tray icon changes color to reflect current state (blue = auto-hide ON, gray = OFF)
 - Configurable per-scenario auto-hide preferences with persistent settings
+- Displays detected monitors with friendly names in the context menu
+- Remote Desktop session detection with configurable auto-hide behavior
 - Manual toggle and "Start with Windows" options in the context menu
 
 ## Installation
@@ -47,8 +50,9 @@ Both scripts install to `~/.local/bin/TuckBar.exe`. Ensure that directory is in 
 
 Run `TuckBar` — it starts in the system tray. Right-click the tray icon for options:
 
+- **Detected monitors** — read-only list of connected displays with names and types
 - **Auto-hide (temporary)** — shows current state; click to manually override until the next display change
-- **Internal monitor only / External monitor only / Both monitors** — choose when auto-hide is enabled (persisted)
+- **Hide when: ...** — choose which scenarios enable auto-hide (internal only, external only, both, Remote Desktop)
 - **Start with Windows** — enable/disable auto-start on sign-in
 - **Exit** — close the app
 
