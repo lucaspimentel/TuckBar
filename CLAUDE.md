@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TuckBar is a Windows system tray app (.NET 10, Windows Forms) that automatically toggles taskbar auto-hide based on monitor configuration. Internal (laptop) monitor present = auto-hide ON; external monitor only = auto-hide OFF.
+TuckBar is a Windows system tray app (.NET 10, Windows Forms) that automatically toggles taskbar auto-hide based on monitor configuration. Users configure per-scenario preferences (internal only, external only, both) via checkmark menu items; settings persist in `~/.config/TuckBar/settings.yml`.
 
 ## Build Commands
 
@@ -19,6 +19,7 @@ Install from source: `pwsh -NoProfile -File install-local.ps1`
 
 ## Architecture
 
+- **`Settings`** — loads/saves per-scenario auto-hide preferences from `~/.config/TuckBar/settings.yml` (hand-parsed YAML, no library dependency).
 - **`TuckBarApplicationContext`** — main entry point (`ApplicationContext`). Owns the system tray icon, context menu, and orchestrates auto-hide logic via `EvaluateAndApply()`.
 - **`DisplayMonitor`** — queries active display paths via `QueryDisplayConfig` Win32 API to classify monitors as internal (laptop) or external.
 - **`TaskbarHelper`** — gets/sets taskbar auto-hide state using `SHAppBarMessage` (immediate) and `StuckRects3` registry key (persistence across Explorer restarts).

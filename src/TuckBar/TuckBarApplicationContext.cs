@@ -4,12 +4,28 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon _notifyIcon;
     private readonly MessageWindow _messageWindow;
-    private readonly ToolStripMenuItem _statusItem;
+    private readonly Settings _settings;
+    private readonly ToolStripMenuItem _autoHideItem;
+    private readonly ToolStripMenuItem _internalOnlyItem;
+    private readonly ToolStripMenuItem _externalOnlyItem;
+    private readonly ToolStripMenuItem _bothItem;
     private readonly ToolStripMenuItem _startupItem;
 
     public TuckBarApplicationContext()
     {
-        _statusItem = new ToolStripMenuItem { Enabled = false };
+        _settings = Settings.Load();
+
+        _autoHideItem = new ToolStripMenuItem("Auto-hide (temporary)");
+        _autoHideItem.Click += OnToggleAutoHide;
+
+        _internalOnlyItem = new ToolStripMenuItem("Internal monitor only") { CheckOnClick = true, Checked = _settings.InternalOnly };
+        _externalOnlyItem = new ToolStripMenuItem("External monitor only") { CheckOnClick = true, Checked = _settings.ExternalOnly };
+        _bothItem = new ToolStripMenuItem("Both monitors") { CheckOnClick = true, Checked = _settings.Both };
+
+        _internalOnlyItem.CheckedChanged += OnSettingChanged;
+        _externalOnlyItem.CheckedChanged += OnSettingChanged;
+        _bothItem.CheckedChanged += OnSettingChanged;
+
         _startupItem = new ToolStripMenuItem("Start with Windows")
         {
             Checked = StartupHelper.IsEnabled()
@@ -17,9 +33,12 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         _startupItem.Click += OnToggleStartup;
 
         var contextMenu = new ContextMenuStrip();
-        contextMenu.Items.Add(_statusItem);
+        contextMenu.Items.Add(_autoHideItem);
         contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add("Toggle Auto-hide", null, OnToggleAutoHide);
+        contextMenu.Items.Add(_internalOnlyItem);
+        contextMenu.Items.Add(_externalOnlyItem);
+        contextMenu.Items.Add(_bothItem);
+        contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add(_startupItem);
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add("Exit", null, OnExit);
@@ -48,6 +67,15 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         _startupItem.Checked = enable;
     }
 
+    private void OnSettingChanged(object? sender, EventArgs e)
+    {
+        _settings.InternalOnly = _internalOnlyItem.Checked;
+        _settings.ExternalOnly = _externalOnlyItem.Checked;
+        _settings.Both = _bothItem.Checked;
+        _settings.Save();
+        EvaluateAndApply();
+    }
+
     private void OnToggleAutoHide(object? sender, EventArgs e)
     {
         bool current = TaskbarHelper.GetAutoHide();
@@ -65,9 +93,13 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
     {
         (bool hasInternal, bool hasExternal) = DisplayMonitor.GetDisplayState();
 
-        // Internal only or both: auto-hide ON
-        // External only: auto-hide OFF
-        bool shouldAutoHide = hasInternal || !hasExternal;
+        bool shouldAutoHide = (hasInternal, hasExternal) switch
+        {
+            (true, false) => _settings.InternalOnly,
+            (false, true) => _settings.ExternalOnly,
+            (true, true) => _settings.Both,
+            _ => _settings.InternalOnly // no displays detected, treat as internal
+        };
 
         TaskbarHelper.SetAutoHide(shouldAutoHide);
         UpdateStatus();
@@ -76,9 +108,8 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
     private void UpdateStatus()
     {
         bool autoHide = TaskbarHelper.GetAutoHide();
-        string state = autoHide ? "ON" : "OFF";
-        _statusItem.Text = $"Auto-hide: {state}";
-        _notifyIcon.Text = $"TuckBar - Auto-hide: {state}";
+        _autoHideItem.Checked = autoHide;
+        _notifyIcon.Text = $"TuckBar - Auto-hide: {(autoHide ? "ON" : "OFF")}";
 
         Icon? oldIcon = _notifyIcon.Icon;
         _notifyIcon.Icon = CreateIcon(autoHide);
