@@ -17,10 +17,10 @@ public class SettingsTests
     public void Parse_ReadsAllValues()
     {
         const string yaml = """
-            internal-only: false
-            external-only: true
-            both: false
-            remote-desktop: true
+            hide-when-internal-only: false
+            hide-when-external-only: true
+            hide-when-both: false
+            hide-when-remote-desktop: true
             """;
 
         Settings settings = Settings.Parse(yaml);
@@ -35,9 +35,9 @@ public class SettingsTests
     public void Parse_IgnoresUnknownKeys()
     {
         const string yaml = """
-            internal-only: false
+            hide-when-internal-only: false
             unknown-key: true
-            both: false
+            hide-when-both: false
             """;
 
         Settings settings = Settings.Parse(yaml);
@@ -51,9 +51,9 @@ public class SettingsTests
     public void Parse_IgnoresInvalidValues()
     {
         const string yaml = """
-            internal-only: maybe
-            external-only: 1
-            both: false
+            hide-when-internal-only: maybe
+            hide-when-external-only: 1
+            hide-when-both: false
             """;
 
         Settings settings = Settings.Parse(yaml);
@@ -68,7 +68,7 @@ public class SettingsTests
     {
         const string yaml = """
             no-colon-here
-            internal-only: true
+            hide-when-internal-only: true
             """;
 
         Settings settings = Settings.Parse(yaml);
@@ -91,10 +91,10 @@ public class SettingsTests
 
         Assert.Equal(
             """
-            internal-only: true
-            external-only: false
-            both: true
-            remote-desktop: false
+            hide-when-internal-only: true
+            hide-when-external-only: false
+            hide-when-both: true
+            hide-when-remote-desktop: false
             """,
             result);
     }

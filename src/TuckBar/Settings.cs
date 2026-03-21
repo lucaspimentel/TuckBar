@@ -54,16 +54,16 @@ internal sealed class Settings
 
             switch (key)
             {
-                case "internal-only":
+                case "hide-when-internal-only":
                     settings.InternalOnly = parsed;
                     break;
-                case "external-only":
+                case "hide-when-external-only":
                     settings.ExternalOnly = parsed;
                     break;
-                case "both":
+                case "hide-when-both":
                     settings.Both = parsed;
                     break;
-                case "remote-desktop":
+                case "hide-when-remote-desktop":
                     settings.RemoteDesktop = parsed;
                     break;
             }
@@ -74,9 +74,9 @@ internal sealed class Settings
 
     internal string Serialize() =>
         $"""
-         internal-only: {InternalOnly.ToString().ToLowerInvariant()}
-         external-only: {ExternalOnly.ToString().ToLowerInvariant()}
-         both: {Both.ToString().ToLowerInvariant()}
-         remote-desktop: {RemoteDesktop.ToString().ToLowerInvariant()}
+         hide-when-internal-only: {InternalOnly.ToString().ToLowerInvariant()}
+         hide-when-external-only: {ExternalOnly.ToString().ToLowerInvariant()}
+         hide-when-both: {Both.ToString().ToLowerInvariant()}
+         hide-when-remote-desktop: {RemoteDesktop.ToString().ToLowerInvariant()}
          """;
 }
