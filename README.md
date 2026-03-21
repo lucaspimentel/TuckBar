@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/lucaspimentel/TuckBar/actions/workflows/ci.yml/badge.svg)](https://github.com/lucaspimentel/TuckBar/actions/workflows/ci.yml) [![Release](https://github.com/lucaspimentel/TuckBar/actions/workflows/release.yml/badge.svg)](https://github.com/lucaspimentel/TuckBar/actions/workflows/release.yml)
 
-A Windows system tray app that automatically toggles taskbar auto-hide based on your monitor configuration.
+A Windows system tray app that automatically toggles taskbar auto-hide based on your monitor configuration — designed to prevent OLED screen burn-in by hiding the static taskbar when an OLED display is active.
+
+For example, if your laptop has an OLED screen but your external monitor does not, TuckBar can automatically enable auto-hide when only the internal OLED display is in use, and disable it when the external (non-OLED) monitor is connected.
 
 | Scenario | Auto-hide (default) |
 |---|---|
