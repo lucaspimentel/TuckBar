@@ -1,6 +1,8 @@
 GetDisplayConfigBufferSizes
 QueryDisplayConfig
+DisplayConfigGetDeviceInfo
 SendMessageTimeout
 FindWindow
 DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY
+DISPLAYCONFIG_TARGET_DEVICE_NAME
 SHAppBarMessage

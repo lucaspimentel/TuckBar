@@ -3,13 +3,16 @@ namespace TuckBar;
 internal sealed class TuckBarApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon _notifyIcon;
+    private readonly ContextMenuStrip _contextMenu;
     private readonly MessageWindow _messageWindow;
     private readonly Settings _settings;
     private readonly ToolStripMenuItem _autoHideItem;
     private readonly ToolStripMenuItem _internalOnlyItem;
     private readonly ToolStripMenuItem _externalOnlyItem;
     private readonly ToolStripMenuItem _bothItem;
+    private readonly ToolStripMenuItem _rdpItem;
     private readonly ToolStripMenuItem _startupItem;
+    private readonly int _monitorItemsIndex;
 
     public TuckBarApplicationContext()
     {
@@ -18,13 +21,15 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         _autoHideItem = new ToolStripMenuItem("Auto-hide (temporary)");
         _autoHideItem.Click += OnToggleAutoHide;
 
-        _internalOnlyItem = new ToolStripMenuItem("Internal monitor only") { CheckOnClick = true, Checked = _settings.InternalOnly };
-        _externalOnlyItem = new ToolStripMenuItem("External monitor only") { CheckOnClick = true, Checked = _settings.ExternalOnly };
-        _bothItem = new ToolStripMenuItem("Both monitors") { CheckOnClick = true, Checked = _settings.Both };
+        _internalOnlyItem = new ToolStripMenuItem("Hide when: internal monitor only") { CheckOnClick = true, Checked = _settings.InternalOnly };
+        _externalOnlyItem = new ToolStripMenuItem("Hide when: external monitor only") { CheckOnClick = true, Checked = _settings.ExternalOnly };
+        _bothItem = new ToolStripMenuItem("Hide when: both monitors") { CheckOnClick = true, Checked = _settings.Both };
+        _rdpItem = new ToolStripMenuItem("Hide when: Remote Desktop") { CheckOnClick = true, Checked = _settings.RemoteDesktop };
 
         _internalOnlyItem.CheckedChanged += OnSettingChanged;
         _externalOnlyItem.CheckedChanged += OnSettingChanged;
         _bothItem.CheckedChanged += OnSettingChanged;
+        _rdpItem.CheckedChanged += OnSettingChanged;
 
         _startupItem = new ToolStripMenuItem("Start with Windows")
         {
@@ -32,20 +37,23 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         };
         _startupItem.Click += OnToggleStartup;
 
-        var contextMenu = new ContextMenuStrip();
-        contextMenu.Items.Add(_autoHideItem);
-        contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add(_internalOnlyItem);
-        contextMenu.Items.Add(_externalOnlyItem);
-        contextMenu.Items.Add(_bothItem);
-        contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add(_startupItem);
-        contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add("Exit", null, OnExit);
+        _contextMenu = new ContextMenuStrip();
+        _monitorItemsIndex = _contextMenu.Items.Count; // monitor items inserted here
+        _contextMenu.Items.Add(new ToolStripSeparator());
+        _contextMenu.Items.Add(_autoHideItem);
+        _contextMenu.Items.Add(new ToolStripSeparator());
+        _contextMenu.Items.Add(_internalOnlyItem);
+        _contextMenu.Items.Add(_externalOnlyItem);
+        _contextMenu.Items.Add(_bothItem);
+        _contextMenu.Items.Add(_rdpItem);
+        _contextMenu.Items.Add(new ToolStripSeparator());
+        _contextMenu.Items.Add(_startupItem);
+        _contextMenu.Items.Add(new ToolStripSeparator());
+        _contextMenu.Items.Add("Exit", null, OnExit);
 
         _notifyIcon = new NotifyIcon
         {
-            ContextMenuStrip = contextMenu,
+            ContextMenuStrip = _contextMenu,
             Visible = true
         };
 
@@ -72,6 +80,7 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         _settings.InternalOnly = _internalOnlyItem.Checked;
         _settings.ExternalOnly = _externalOnlyItem.Checked;
         _settings.Both = _bothItem.Checked;
+        _settings.RemoteDesktop = _rdpItem.Checked;
         _settings.Save();
         EvaluateAndApply();
     }
@@ -91,25 +100,40 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
 
     private void EvaluateAndApply()
     {
-        (bool hasInternal, bool hasExternal) = DisplayMonitor.GetDisplayState();
+        List<DisplayInfo> displays = DisplayMonitor.GetDisplays();
 
-        bool shouldAutoHide = (hasInternal, hasExternal) switch
+        bool shouldAutoHide;
+
+        if (SystemInformation.TerminalServerSession)
         {
-            (true, false) => _settings.InternalOnly,
-            (false, true) => _settings.ExternalOnly,
-            (true, true) => _settings.Both,
-            _ => _settings.InternalOnly // no displays detected, treat as internal
-        };
+            shouldAutoHide = _settings.RemoteDesktop;
+        }
+        else
+        {
+            bool hasInternal = displays.Any(d => d.IsInternal);
+            bool hasExternal = displays.Any(d => !d.IsInternal);
+
+            shouldAutoHide = (hasInternal, hasExternal) switch
+            {
+                (true, false) => _settings.InternalOnly,
+                (false, true) => _settings.ExternalOnly,
+                (true, true) => _settings.Both,
+                _ => _settings.InternalOnly // no displays detected, treat as internal
+            };
+        }
 
         TaskbarHelper.SetAutoHide(shouldAutoHide);
-        UpdateStatus();
+        UpdateStatus(displays);
     }
 
-    private void UpdateStatus()
+    private void UpdateStatus(List<DisplayInfo>? displays = null)
     {
         bool autoHide = TaskbarHelper.GetAutoHide();
         _autoHideItem.Checked = autoHide;
-        _notifyIcon.Text = $"TuckBar - Auto-hide: {(autoHide ? "ON" : "OFF")}";
+
+        displays ??= DisplayMonitor.GetDisplays();
+        UpdateMonitorMenuItems(displays);
+        UpdateTooltip(autoHide, displays);
 
         Icon? oldIcon = _notifyIcon.Icon;
         _notifyIcon.Icon = CreateIcon(autoHide);
@@ -118,6 +142,55 @@ internal sealed class TuckBarApplicationContext : ApplicationContext
         {
             DestroyIcon(oldIcon);
         }
+    }
+
+    private void UpdateMonitorMenuItems(List<DisplayInfo> displays)
+    {
+        // Remove existing monitor items (everything before the first separator)
+        while (_monitorItemsIndex < _contextMenu.Items.Count &&
+               _contextMenu.Items[_monitorItemsIndex] is not ToolStripSeparator)
+        {
+            _contextMenu.Items.RemoveAt(_monitorItemsIndex);
+        }
+
+        // Insert new monitor items
+        for (int i = 0; i < displays.Count; i++)
+        {
+            DisplayInfo display = displays[i];
+            string type = display.IsInternal ? "Internal" : "External";
+            var item = new ToolStripMenuItem($"{display.Name} ({type})") { Enabled = false };
+            _contextMenu.Items.Insert(_monitorItemsIndex + i, item);
+        }
+
+        if (displays.Count == 0)
+        {
+            var item = new ToolStripMenuItem("No monitors detected") { Enabled = false };
+            _contextMenu.Items.Insert(_monitorItemsIndex, item);
+        }
+    }
+
+    private void UpdateTooltip(bool autoHide, List<DisplayInfo> displays)
+    {
+        int internalCount = displays.Count(d => d.IsInternal);
+        int externalCount = displays.Count(d => !d.IsInternal);
+
+        string monitorSummary = (internalCount, externalCount) switch
+        {
+            (> 0, > 0) => $"internal + {externalCount} external",
+            (> 0, 0) => "internal only",
+            (0, > 0) => $"{externalCount} external",
+            _ => "no monitors"
+        };
+
+        string text = $"TuckBar - Auto-hide: {(autoHide ? "ON" : "OFF")} ({monitorSummary})";
+
+        // NotifyIcon.Text is limited to 127 characters
+        if (text.Length > 127)
+        {
+            text = text[..127];
+        }
+
+        _notifyIcon.Text = text;
     }
 
     private static Icon CreateIcon(bool autoHide)

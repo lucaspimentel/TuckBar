@@ -9,6 +9,7 @@ internal sealed class Settings
     public bool InternalOnly { get; set; } = true;
     public bool ExternalOnly { get; set; }
     public bool Both { get; set; } = true;
+    public bool RemoteDesktop { get; set; }
 
     public static Settings Load()
     {
@@ -62,6 +63,9 @@ internal sealed class Settings
                 case "both":
                     settings.Both = parsed;
                     break;
+                case "remote-desktop":
+                    settings.RemoteDesktop = parsed;
+                    break;
             }
         }
 
@@ -73,5 +77,6 @@ internal sealed class Settings
          internal-only: {InternalOnly.ToString().ToLowerInvariant()}
          external-only: {ExternalOnly.ToString().ToLowerInvariant()}
          both: {Both.ToString().ToLowerInvariant()}
+         remote-desktop: {RemoteDesktop.ToString().ToLowerInvariant()}
          """;
 }

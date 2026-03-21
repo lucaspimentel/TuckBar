@@ -10,6 +10,7 @@ public class SettingsTests
         Assert.True(settings.InternalOnly);
         Assert.False(settings.ExternalOnly);
         Assert.True(settings.Both);
+        Assert.False(settings.RemoteDesktop);
     }
 
     [Fact]
@@ -19,6 +20,7 @@ public class SettingsTests
             internal-only: false
             external-only: true
             both: false
+            remote-desktop: true
             """;
 
         Settings settings = Settings.Parse(yaml);
@@ -26,6 +28,7 @@ public class SettingsTests
         Assert.False(settings.InternalOnly);
         Assert.True(settings.ExternalOnly);
         Assert.False(settings.Both);
+        Assert.True(settings.RemoteDesktop);
     }
 
     [Fact]
@@ -80,7 +83,8 @@ public class SettingsTests
         {
             InternalOnly = true,
             ExternalOnly = false,
-            Both = true
+            Both = true,
+            RemoteDesktop = false
         };
 
         string result = settings.Serialize();
@@ -90,6 +94,7 @@ public class SettingsTests
             internal-only: true
             external-only: false
             both: true
+            remote-desktop: false
             """,
             result);
     }
@@ -101,7 +106,8 @@ public class SettingsTests
         {
             InternalOnly = false,
             ExternalOnly = true,
-            Both = false
+            Both = false,
+            RemoteDesktop = true
         };
 
         Settings roundTripped = Settings.Parse(original.Serialize());
@@ -109,5 +115,6 @@ public class SettingsTests
         Assert.Equal(original.InternalOnly, roundTripped.InternalOnly);
         Assert.Equal(original.ExternalOnly, roundTripped.ExternalOnly);
         Assert.Equal(original.Both, roundTripped.Both);
+        Assert.Equal(original.RemoteDesktop, roundTripped.RemoteDesktop);
     }
 }
