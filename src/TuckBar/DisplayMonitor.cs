@@ -9,28 +9,6 @@ internal record DisplayInfo(string Name, bool IsInternal);
 
 internal static class DisplayMonitor
 {
-    public static (bool HasInternal, bool HasExternal) GetDisplayState()
-    {
-        List<DisplayInfo> displays = GetDisplays();
-
-        bool hasInternal = false;
-        bool hasExternal = false;
-
-        foreach (DisplayInfo display in displays)
-        {
-            if (display.IsInternal)
-            {
-                hasInternal = true;
-            }
-            else
-            {
-                hasExternal = true;
-            }
-        }
-
-        return (hasInternal, hasExternal);
-    }
-
     public static List<DisplayInfo> GetDisplays()
     {
         var displays = new List<DisplayInfo>();

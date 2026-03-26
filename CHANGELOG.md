@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0] - 2026-03-25
+
+### Changed
+
+- Settings now track per-monitor auto-hide preferences instead of scenario-based rules (internal-only, external-only, both)
+- Context menu shows interactive checkboxes for each monitor instead of scenario toggles
+- Disconnected monitors remain in the menu (labeled "disconnected") and retain their saved preferences
+- New monitors default to the current Windows taskbar auto-hide state when first detected
+
+### Removed
+
+- Scenario-based settings (`hide-when-internal-only`, `hide-when-external-only`, `hide-when-both`) replaced by per-monitor settings
+
+### Fixed
+
+- Checksum verification added to remote install script
+- README updated to mention OLED burn-in prevention as primary use case
+
 ## [0.2.0] - 2026-03-21
 
 ### Added
