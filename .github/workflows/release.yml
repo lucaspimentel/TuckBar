@@ -13,14 +13,37 @@ on:
     inputs:
       version:
         description: 'Version to release (e.g., 1.0.0)'
-        required: true
+        required: false
         type: string
+      dry_run:
+        description: 'Build and test only; skip publishing and release creation'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 jobs:
+  check-inputs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Validate workflow inputs
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ] \
+          && [ "${{ inputs.dry_run }}" != "true" ] \
+          && [ -z "${{ inputs.version }}" ]; then
+          echo "::error::version is required when dry_run is false"
+          exit 1
+        fi
+
+  ci:
+    needs: check-inputs
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: ci
     runs-on: windows-latest
 
     steps:
@@ -33,9 +56,6 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore TuckBar.slnx
-
-    - name: Test
-      run: dotnet test TuckBar.slnx -c Release --verbosity normal
 
     - name: Publish
       run: dotnet publish ${{ env.PROJECT_FILE }} -c Release -r win-x64
@@ -70,6 +90,7 @@ jobs:
 
   release:
     needs: build
+    if: github.event_name == 'push' || !inputs.dry_run
     runs-on: ubuntu-latest
 
     steps:
