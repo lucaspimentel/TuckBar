@@ -1,10 +1,5 @@
 name: CI
 
-env:
-  ASSEMBLY_NAME: TuckBar
-  PROJECT_NAME: TuckBar
-  PROJECT_FILE: src/TuckBar/TuckBar.csproj
-
 on:
   push:
     branches: [ main ]
